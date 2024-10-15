@@ -1,0 +1,33 @@
+services:
+  backendapp:
+    container_name: backendapp
+    image: upshift/backendapp:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DB_URL: ${DB_URL}
+        PG_USER: ${PG_USER}
+        PG_PASSWORD: ${PG_PASSWORD}
+    ports:
+      - '8080:8080'
+    depends_on:
+      - db
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/mydatabase
+      PG_USER: cvvnk
+      PG_PASSWORD: secret
+
+  db:
+    container_name: postgres
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: cvvnk
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+volumes:
+  postgres_data: {}
