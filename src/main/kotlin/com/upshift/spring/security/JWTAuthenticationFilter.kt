@@ -17,16 +17,14 @@ import java.io.IOException
 
 class JWTAuthenticationFilter(
     private val authManager: AppAuthenticationManager,
-    private val securityProperties: SecurityProperties,
-    private val tokenProvider: TokenProvider
+    private val tokenProvider: TokenProvider,
 ) : UsernamePasswordAuthenticationFilter() {
-
     @Throws(AuthenticationException::class)
     override fun attemptAuthentication(
         req: HttpServletRequest,
-        res: HttpServletResponse?
-    ): Authentication {
-        return try {
+        res: HttpServletResponse?,
+    ): Authentication =
+        try {
             val mapper = jacksonObjectMapper()
 
             val creds = mapper.readValue<UserLoginDTO>(req.inputStream)
@@ -35,22 +33,21 @@ class JWTAuthenticationFilter(
                 UsernamePasswordAuthenticationToken(
                     creds.username,
                     creds.password,
-                    ArrayList()
-                )
+                    ArrayList(),
+                ),
             )
         } catch (e: IOException) {
-            throw AuthenticationServiceException(e.message)
+            throw AuthenticationServiceException(e.message, e)
         }
-    }
 
     @Throws(IOException::class, ServletException::class)
     override fun successfulAuthentication(
         req: HttpServletRequest,
         res: HttpServletResponse,
-        chain: FilterChain?,
-        authentication: Authentication
+        chain: FilterChain,
+        authentication: Authentication,
     ) {
         val token = tokenProvider.createToken(authentication)
-        res.addHeader(securityProperties.headerString, securityProperties.tokenPrefix + token)
+        res.addHeader(SecurityProperties.HEADER_STRING, SecurityProperties.TOKEN_PREFIX + token)
     }
 }

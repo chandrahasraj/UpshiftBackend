@@ -12,19 +12,16 @@ import java.io.IOException
 
 class JWTAuthorizationFilter(
     authManager: AuthenticationManager,
-    private val securityProperties: SecurityProperties,
-    private val tokenProvider: TokenProvider
-
+    private val tokenProvider: TokenProvider,
 ) : BasicAuthenticationFilter(authManager) {
-
     @Throws(IOException::class, ServletException::class)
     override fun doFilterInternal(
         req: HttpServletRequest,
         res: HttpServletResponse,
-        chain: FilterChain
+        chain: FilterChain,
     ) {
-        val header = req.getHeader(securityProperties.headerString)
-        if (header == null || !header.startsWith(securityProperties.tokenPrefix)) {
+        val header = req.getHeader(SecurityProperties.HEADER_STRING)
+        if (header == null || !header.startsWith(SecurityProperties.TOKEN_PREFIX)) {
             chain.doFilter(req, res)
             return
         }

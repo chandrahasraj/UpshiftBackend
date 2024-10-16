@@ -1,10 +1,13 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     kotlin("jvm") version "1.9.25"
     kotlin("plugin.spring") version "1.9.25"
-    kotlin("kapt") version "2.0.21"
+    kotlin("kapt") version "2.0.10"
     id("org.springframework.boot") version "3.3.4"
     id("io.spring.dependency-management") version "1.1.6"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
+    id("io.gitlab.arturbosch.detekt") version "1.23.7"
 }
 
 group = "com.upshift"
@@ -24,6 +27,14 @@ configurations {
 
 repositories {
     mavenCentral()
+}
+
+tasks.withType<Detekt>().configureEach {
+    reports {
+        html.required.set(true) // observe findings in your browser with structure and code snippets
+        md.required.set(true) // simple Markdown format
+    }
+    config.setFrom(files("$rootDir/detekt-config.yml"))
 }
 
 extra["snippetsDir"] = file("build/generated-snippets")
@@ -51,6 +62,8 @@ dependencies {
     testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.7")
 }
 
 kotlin {

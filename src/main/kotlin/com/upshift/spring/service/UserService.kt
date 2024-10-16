@@ -25,15 +25,12 @@ class UserService(
     private val userRepository: UserRepository,
     @Autowired private val tokenProvider: TokenProvider,
     @Autowired private val bcryptEncoder: BCryptPasswordEncoder,
-    @PersistenceContext private val entityManager: EntityManager
+    @PersistenceContext private val entityManager: EntityManager,
 ) {
     private val mapper: UserInputToUserDOMapper = Mappers.getMapper(UserInputToUserDOMapper::class.java)
     private val userDoToUserDoMapper: UserDoToUserDoMapper = Mappers.getMapper(UserDoToUserDoMapper::class.java)
     private val userDoToUserOutputMapper: UserDoToUserOutputMapper =
         Mappers.getMapper(UserDoToUserOutputMapper::class.java)
-
-    fun findAll() = userRepository.findAll()
-    fun findById(id: Long) = userRepository.findById(id.toInt())
 
     @Transactional
     fun saveRole(roleDO: RoleDO) {
@@ -49,45 +46,54 @@ class UserService(
             it.userDO = updatedDo
             saveRole(it)
         }
-        return userDoToUserOutputMapper.mapUserDoToUserOutput(
+        return userDoToUserOutputMapper.mapUserDoToUserOutputWithToken(
             updatedDo,
-            createToken(updatedDo.username, updatedDo.password, updatedDo.roles)
+            createToken(updatedDo.username, updatedDo.password, updatedDo.roles),
         )
     }
 
-    fun deleteById(id: Long) = userRepository.deleteById(id.toInt())
-    fun findByEmail(email: String) = userRepository.findByEmail(email)
-    fun findByUsername(username: String) = userRepository.findByUsername(username)
+    fun findByUsername(username: String): UserOutput =
+        userRepository
+            .findByUsername(username)
+            .map {
+                userDoToUserOutputMapper.mapUserDoToUserOutputWithoutToken(it)
+            }.orElseThrow { UsernameNotFoundException("User not found") }
 
     @Transactional
     fun update(userInput: UserInput): UserOutput {
         val userDO = mapper.mapUserInputToUserDO(userInput)
-        return userRepository.findByUsername(userInput.username).map { existingUser ->
-            val toUpdateUserDo = userDoToUserDoMapper.mapUserDoToUserDo(userDO, existingUser)
-            toUpdateUserDo.roles = userDO.roles.takeIf { !it.isNullOrEmpty() } ?: existingUser.roles
-            val updatedDo = userRepository.save(toUpdateUserDo)
-            updatedDo.roles!!.map {
-                it.userDO = updatedDo
-                saveRole(it)
-            }
+        return userRepository
+            .findByUsername(userInput.username)
+            .map { existingUser ->
+                val toUpdateUserDo = userDoToUserDoMapper.mapUserDoToUserDo(userDO, existingUser)
+                toUpdateUserDo.roles = userDO.roles.takeIf { !it.isNullOrEmpty() } ?: existingUser.roles
+                val updatedDo = userRepository.save(toUpdateUserDo)
+                updatedDo.roles!!.map {
+                    it.userDO = updatedDo
+                    saveRole(it)
+                }
 
-            return@map userDoToUserOutputMapper.mapUserDoToUserOutput(
-                updatedDo,
-                createToken(updatedDo.username, updatedDo.password, updatedDo.roles)
-            )
-        }.orElseThrow { UsernameNotFoundException("User not found") }
+                return@map userDoToUserOutputMapper.mapUserDoToUserOutputWithToken(
+                    updatedDo,
+                    createToken(updatedDo.username, updatedDo.password, updatedDo.roles),
+                )
+            }.orElseThrow { UsernameNotFoundException("User not found") }
     }
 
-    private fun createToken(username: String?, password: String?, roles: Set<RoleDO>?): String {
-        return tokenProvider
+    private fun createToken(
+        username: String?,
+        password: String?,
+        roles: Set<RoleDO>?,
+    ): String =
+        tokenProvider
             .createToken(
                 UsernamePasswordAuthenticationToken(
                     username,
                     password,
                     AuthorityUtils.createAuthorityList(
-                        roles?.map { it.accessRole?.roleType }?.toList() ?: listOf(SupportedRole.STANDARD_USER.roleType)
-                    )
-                )
+                        roles?.map { it.accessRole?.roleType }?.toList()
+                            ?: listOf(SupportedRole.STANDARD_USER.roleType),
+                    ),
+                ),
             )
-    }
 }

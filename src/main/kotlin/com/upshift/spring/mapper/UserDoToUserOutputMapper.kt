@@ -15,11 +15,18 @@ interface UserDoToUserOutputMapper {
     @Mapping(target = "username", source = "userDo.username")
     @Mapping(target = "id", source = "userDo.id")
     @Mapping(target = "token", expression = "java(token)")
-    fun mapUserDoToUserOutput(userDo: UserDO, token: String): UserOutput
+    fun mapUserDoToUserOutputWithToken(
+        userDo: UserDO,
+        token: String,
+    ): UserOutput
 
-    fun mapRolesDOToRoleBO(roles: Set<RoleDO>): Set<RoleBO> {
-        return roles.map { mapRoleToRoleDOAccessRole(it) }.toSet()
-    }
+    @Mapping(target = "roles", expression = "java(mapRolesDOToRoleBO(userDo.getRoles()))")
+    @Mapping(target = "email", source = "userDo.email")
+    @Mapping(target = "username", source = "userDo.username")
+    @Mapping(target = "id", source = "userDo.id")
+    fun mapUserDoToUserOutputWithoutToken(userDo: UserDO): UserOutput
+
+    fun mapRolesDOToRoleBO(roles: Set<RoleDO>): Set<RoleBO> = roles.map { mapRoleToRoleDOAccessRole(it) }.toSet()
 
     @Mapping(target = "roleName", expression = "java(role.getAccessRole().getRoleType())")
     fun mapRoleToRoleDOAccessRole(role: RoleDO): RoleBO

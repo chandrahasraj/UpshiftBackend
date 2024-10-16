@@ -5,14 +5,12 @@ import org.springframework.validation.annotation.Validated
 
 @ConfigurationProperties(prefix = "jwt-security")
 @Validated
-class SecurityProperties {
-    var secret = ""
-
-    var expirationTime: Int = 31 // in days
-
-    var strength = 10
+object SecurityProperties {
+    const val SECRET = ""
+    const val EXPIRATION_TIME: Int = 31 // in days
+    const val STRENGTH = 10
 
     // constant
-    val tokenPrefix = "Bearer "
-    val headerString = "Authorization"
+    const val TOKEN_PREFIX = "Bearer "
+    const val HEADER_STRING = "Authorization"
 }

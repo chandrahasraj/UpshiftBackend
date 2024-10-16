@@ -8,5 +8,5 @@ data class UserOutput(
     var username: String? = null,
     var email: String? = null,
     var roles: Set<RoleBO>? = null,
-    var token: String? = null
+    var token: String? = null,
 )

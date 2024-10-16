@@ -21,9 +21,10 @@ class AppAuthenticationManager(
     @Throws(AuthenticationException::class)
     override fun authenticate(authentication: Authentication): Authentication {
         val password = authentication.credentials.toString()
-        val userDO: UserDO = userRepository.findByUsername(authentication.name).orElseThrow {
-            UsernameNotFoundException("The username ${authentication.name} doesn't exist")
-        }
+        val userDO: UserDO =
+            userRepository.findByUsername(authentication.name).orElseThrow {
+                UsernameNotFoundException("The username ${authentication.name} doesn't exist")
+            }
         if (!bCryptPasswordEncoder.matches(password, userDO.password)) {
             throw BadCredentialsException("Bad credentials")
         }

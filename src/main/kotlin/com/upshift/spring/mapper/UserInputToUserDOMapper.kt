@@ -4,7 +4,11 @@ import com.upshift.spring.entity.RoleDO
 import com.upshift.spring.entity.UserDO
 import com.upshift.spring.model.RoleBO
 import com.upshift.spring.model.UserInput
-import org.mapstruct.*
+import org.mapstruct.BeanMapping
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.NullValueCheckStrategy
+import org.mapstruct.NullValuePropertyMappingStrategy
 
 @Mapper(nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS, componentModel = "spring")
 interface UserInputToUserDOMapper {
@@ -15,10 +19,11 @@ interface UserInputToUserDOMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     fun mapUserInputToUserDO(userInput: UserInput): UserDO
 
-    fun mapRolesToRoleDO(roles: Set<RoleBO>): Set<RoleDO> {
-        return roles.map { mapRoleToRoleDOAccessRole(it) }.toSet()
-    }
+    fun mapRolesToRoleDO(roles: Set<RoleBO>): Set<RoleDO> = roles.map { mapRoleToRoleDOAccessRole(it) }.toSet()
 
-    @Mapping(target = "accessRole", expression = "java(com.upshift.spring.entity.SupportedRole.valueOf(role.getRoleName()))")
+    @Mapping(
+        target = "accessRole",
+        expression = "java(com.upshift.spring.entity.SupportedRole.valueOf(role.getRoleName()))",
+    )
     fun mapRoleToRoleDOAccessRole(role: RoleBO): RoleDO
 }
