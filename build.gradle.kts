@@ -47,7 +47,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+    implementation("com.h2database:h2")
 
     implementation("org.mapstruct:mapstruct:1.6.1")
     kapt("org.mapstruct:mapstruct-processor:1.6.1")

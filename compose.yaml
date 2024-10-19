@@ -6,17 +6,25 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        DB_URL: ${DB_URL}
-        PG_USER: ${PG_USER}
-        PG_PASSWORD: ${PG_PASSWORD}
+        PROD_DB_URL: ${PROD_DB_URL}
+        DEV_DB_URL: ${DEV_DB_URL}
+        PROD_PG_USER: ${PROD_PG_USER}
+        DEV_PG_USER: ${DEV_PG_USER}
+        PROD_PG_PASSWORD: ${PROD_PG_PASSWORD}
+        DEV_PG_PASSWORD: ${DEV_PG_PASSWORD}
+        PROFILE: ${PROFILE}
     ports:
       - '8080:8080'
     depends_on:
       - db
     environment:
-      DB_URL: jdbc:postgresql://db:5432/mydatabase
-      PG_USER: cvvnk
-      PG_PASSWORD: secret
+      PROD_DB_URL: jdbc:postgresql://db:5432/mydatabase
+      DEV_DB_URL: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+      PROD_PG_USER: cvvnk
+      DEV_PG_USER: cvvnk
+      PROD_PG_PASSWORD: secret
+      DEV_PG_PASSWORD: secret
+      PROFILE: production
 
   db:
     container_name: postgres
@@ -29,5 +37,22 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/grafana/datasources.yml:/etc/grafana/provisioning/datasources.yml
 volumes:
   postgres_data: { }

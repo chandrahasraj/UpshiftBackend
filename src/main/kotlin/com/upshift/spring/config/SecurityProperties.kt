@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated
 @ConfigurationProperties(prefix = "jwt-security")
 @Validated
 object SecurityProperties {
-    const val SECRET = ""
+    const val SECRET = "PseudoSecret-Pseudosecret-IMPORTANT-Specific!Key@#-IMPORTANT"
     const val EXPIRATION_TIME: Int = 31 // in days
     const val STRENGTH = 10
 
